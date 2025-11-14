@@ -7,6 +7,7 @@
 - [ARM CCA](https://www.arm.com/architecture/security-features/arm-confidential-compute-architecture)
 - [ARM developer](https://developer.arm.com/documentation/den0126/0102)
 - [KVM CCA](https://www.cs.columbia.edu/~nieh/pubs/osdi2022_cca.pdf)
+- [Veraison](https://github.com/veraison)
 
 ## Summary
 - TrustZone vs CCA focusing on problems of TrustZone and how they are patched with CCA
