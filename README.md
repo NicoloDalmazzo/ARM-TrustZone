@@ -17,6 +17,8 @@
 - [Draft - Arm's Confidential Compute Architecture Reference Attestation Token](https://datatracker.ietf.org/doc/draft-ffm-rats-cca-token/)
 - [TrustZone and CAA comparison](https://fengweiz.github.io/paper/sok-seed24-slides.pdf)
 - [Resources from ARM Developer Blog](https://developer.arm.com/search#numberOfResults=48&q=confidential%20computing%20architecture&f-navigationhierarchiescontenttype=Forum%20Thread,Blog%20Post)
+- [Run an end-to-end Attestation Flow with Arm CCA](https://learn.arm.com/learning-paths/servers-and-cloud-computing/cca-essentials/)
+
 ## Summary
 - TrustZone vs CCA focusing on problems of TrustZone and how they are patched with CCA
 - RME architecture
