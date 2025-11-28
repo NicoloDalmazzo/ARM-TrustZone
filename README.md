@@ -26,6 +26,20 @@
 - Attestation/Remote attestation
 - Software and firmware
 
+## Presentation Summary
+- why TEE
+- TrustZone introduction (and attestation?)
+- trustzone downsides
+- background knowledge
+- Arm CCA motivations
+- companies involved (arm, linaro, huawei, CCC)
+- Arm CCA architecture hardware
+- Arm CCA architecture software
+- TrustZone vs CCA (features and downsides)
+- attestation trustzone vs cca
+- summary and use case (namely, scenarios in which CCA is better)
+- future direction (personal considerations?)
+
 ## Logistic
 - Max 40 pages for Lioy, the imprtant thing is to have material and do not do a long write without material
 
