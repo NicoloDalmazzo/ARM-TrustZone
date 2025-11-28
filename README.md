@@ -19,6 +19,7 @@
 - [Resources from ARM Developer Blog](https://developer.arm.com/search#numberOfResults=48&q=confidential%20computing%20architecture&f-navigationhierarchiescontenttype=Forum%20Thread,Blog%20Post)
 - [Run an end-to-end Attestation Flow with Arm CCA](https://learn.arm.com/learning-paths/servers-and-cloud-computing/cca-essentials/)
 - [Paper - Formal Verification of CAA](https://ieeexplore.ieee.org/document/10373038)
+- [Presentation - ARM Attestation](https://static.linaro.org/connect/armcca/presentations/CCATechEvent-210623-SF.pdf)
 
 ## Summary
 - TrustZone vs CCA focusing on problems of TrustZone and how they are patched with CCA
