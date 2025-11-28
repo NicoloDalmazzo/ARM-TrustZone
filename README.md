@@ -29,14 +29,14 @@
 ## Presentation Summary
 - why TEE
 - TrustZone introduction (and attestation?)
-- trustzone downsides
-- background knowledge
-- Arm CCA motivations
+- trustzone downsides (not isolation between applications and not a root state)
+- background knowledge (mpe, gpt, exception model...)
+- Arm CCA motivations (repeat shortly)
 - companies involved (arm, linaro, huawei, CCC)
-- Arm CCA architecture hardware
-- Arm CCA architecture software
-- TrustZone vs CCA (features and downsides)
-- attestation trustzone vs cca
+- Arm CCA architecture hardware (rmi, hes)
+- Arm CCA architecture software (rmm, secure monitor, hes sw)
+- TrustZone vs CCA (features and downsides) (pro vs cons)
+- attestation trustzone vs cca (maybe do some introduction on turstzone before)
 - summary and use case (namely, scenarios in which CCA is better)
 - future direction (personal considerations?)
 
