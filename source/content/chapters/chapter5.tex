@@ -1,0 +1,55 @@
+\chapter{Comparison and Considerations}
+\label{sec:attestation}
+As described throughout this work, Arm TrustZone and Arm CCA are two extremely different solutions. Besides the fact that Arm CCA solves some TrustZone downsides, they must not be considered as two mutually exclusive technologies. In fact, when Arm CCA will become available on the market, luckily Arm TrustZone will be still adopted for specific purposes. This section aims to highlight the differences between the two technologies, depicting the different possible use cases.
+
+\section{Architecture}
+From the architectural perspective, the biggest difference between Arm CCA and Arm TrustZone is the fact that the first one adopted a virtualization-based approach. So, the Realm can run application inside an environment with less constraint from different perspective:
+\begin{itemize}
+    \item the VM approach permit to run a complete OS under the Trusted Applications. So, the development is simplified by the fact that standard API calls can be used. On the other hand, on TrustZone the TAs must relies on the underlying secure OS.
+    So, the development of the TAs depends on the API exposed by the underlying secure OS, which often is not POSIX compliant. So, Arm CCA reduces the complexity for the development of TAs.
+    \item the VM approach has also less constraint about how much memory can be assigned to a TEE. The lack of the GPT in TrustZone does not allow to assign dynamically the memory for the TAs. For instance, OP-TEE, which is the reference open source implementation for the secure OS, can run TAs of maximum some MB.
+\end{itemize}
+
+Another fundamental difference is that the introduction of the Root secure state strengthens the overall security of the architecture. In fact, in TrustZone both the TAs and the Secure Monitor run in the same security state (the Secure State). So, they shared the same physical address space in memory. Moreover, the Secure State is able to access all the memory regions of the CPU. These facts implies that a vulnerability in a TA or in the Secure OS could harm any entity of the system (both in the Secure and Non-Secure world). Instead, in Arm CCA this is not possible. In fact the Secure Monitor runs in the Root World, which has its own secure state, so it has its own physical address space.
+
+Then, the addition of Realm Management Engine and the Realm Management Monitor (respectively, from the hardware and software perspective) enable Arm CCA to ensure hardware based isolation between different Realm. This is the key point that lead Arm to develop this new technology. In fact, in TrustZone the hardware based isolation is guaranteed only between the Secure and the Non-Secure world. So, the different TAs run in the same enclave was software isolated (thank to the Secure OS). This is a fundamental step, since thanks to this improvements the Arm CCA technology is suitable for the server side machine (more on this later).
+
+On the other hand, Arm CCA presents one important disadvantage with respect to TrustZone. In fact, the Realm instantiation is requested from the hypervisor, which runs in the Non-Secure world. Moreover, the hypervisor is not part of the TCB and there is no need to trust it. This is an advantage since a reduced TCB size implies less probability of misbehavior that cannot be detected. However, this means that a vulnerability in the hypervisor cannot be detected. As consequence, since the request to a Realm are made by the hypervisor, the Arm CCA architecture does not guarantee the availability of the workload in the Realms.
+
+\begin{table}[h]
+  \centering
+  \begin{tabularx}{\linewidth}{|X|X|}
+    \hline
+    \textbf{Arm CCA} & \textbf{Arm TrustZone} \\
+    \hline
+    Ensure hardware-based mutual distrust between different TAs
+      & Does not ensure hardware isolation between TAs \\
+    \hline
+    More flexible TA development
+      & Complex TA development due to the lack of portable APIs \\
+    \hline
+    Flexible and unconstrained memory allocation for Realms
+      & TAs can be large, in the order of some MB \\
+    \hline
+    Does not guarantee availability of the Realm, only confidentiality and integrity
+      & Ensures availability of the TA along with confidentiality and integrity \\
+    \hline
+  \end{tabularx}
+  \caption{Comparison between Arm CCA and Arm TrustZone.}
+  \label{tab:cca-vs-tz}
+\end{table}
+
+\section{Use cases}
+Despite the fact that Arm CCA development has been aided by the concern about the Arm TrustZone downsides, the use cases are quite different. Arm TrustZone has been deployed mostly for the smartphone and IoT markets (for both A and M profiles). For instance, several streaming services relies upon TEE for the Digital Rights Management. In fact, these services offer lower streaming resolution to device which cannot attest the fact that they will manage the video output in a TEE. Moreover, several e-payments applications uses the secure enclave for processing payment data since TrustZone can guarantees the access to a trusted keypad and a trusted display \cite{arm-tz-usage}. So, Arm TrustZone is a suitable solution for the end user devices.
+
+On the other hand, Arm CCA is luckily more suitable for the server side machines. In fact, the VM based approach is more adoptable for multi-tenant environment, in which several services runs on the same machine. For instance, Arm CCA could be a good solution for a cloud provider. In fact, in a cloud environment the mutual distrust between the customer applications is a key requirement. Arm CCA ensures the isolation between the services and the location freshness, which means that the memory content is rid off when that granule is assigned to another Realm. We imagine that the VM approach would add a noticeable overhead for an end-user device. However, no official benchmarks has been released since the actual hardware implementation is still not available.
+
+\section{Attestation}
+The attestation process is one of the most critical mechanism in confidential computing. In fact, not only it is important the protection of data in use, but it is also important the capability of attesting such behaviour. Sadly, as already reported, Arm does not provided a standard for the attestation mechanism for Arm TrustZone. This fact impose limitation about the flexible implementation of a verifier, since different market solutions could present different attestation token.
+
+Instead, there are current effort by Arm and Linaro for defining a standard format for the Arm CCA attestation token. Moreover, they are defining the architecture of the attester as described early. So, it will be easier to implement a remote attestation environment since all the elements are going to be standardized. One great advantage of the structure of the Arm CCA attestation token is that it is compliant with the need-to-known security principle. In fact, it is possible to insert in the attestation token only the information that are needed by the attester to appraise the claims.
+
+Besides that, the Arm CCA attestation process presents some potential downsides. In fact, it seems that no efforts has been put in order to preserve privacy and information leakage issues. The CCA attestation token is made up by two different tokens: the realm and the platform attestation token. So, two different Realms will have two different Realm attestation token, but they will share the same platform attestation token if they are running on the same physical machine.
+This could be a severe downside to address: in the scenario of a cloud provider which hosts a multi-tenant environment, this issue could leak companies relationship or information about the infrastructure management. In a scenario in which Arm CCA is employed for end-user devices use case, this information leakage could be exploited to track the user activity among different services.
+
+Arm raised the attention about these possible issues, but in both CCA security model and attestation token draft they stated that this problematic was out of scope in that context. They suggested the usage of pseudonyms keys, but no further details has been provided.

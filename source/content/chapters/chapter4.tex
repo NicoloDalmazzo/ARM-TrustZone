@@ -1,0 +1,287 @@
+\chapter{Arm CCA}
+\label{sec:cca}
+As consequence to the downsides of TrustZone, Arm started to develop a new entire architecture that has been named Confidential Compute Architecture (CCA) \cite{arm-den-0125}.
+The main requirements which Arm CCA addresses is the enable of mutual distrust among different trusted applications. Moreover, it is needed a mechanism for ensuring that an application has been deployed into a trustworthy state.
+This issues are addressed with an architecture oriented towards the isolation between Virtual Machines, called Realms (more details on this later).
+
+Arm CCA has not yet been released on the market, but different simulations have been developed on earlier Arm architectures \cite{IEEE:openCCA}.
+The ARM CCA architecture is made up by both software and hardware components. Moreover, they constitutes the Trusted Computing Base for the confidential computing. In this chapter the CCA architecture is presented, describing both the hardware (sections \ref{sec:RME}, \ref{sec:HES}) and the software elements (sections \ref{sec:monitor}, \ref{sec:RMM}). Then, the focus is put on the attestation mechanism (section \ref{sec:attCCA}). 
+
+\section{Realm Management Engine}
+\label{sec:RME}
+
+The Realm Management Engine (RME) provides the hardware primitives necessary to support Confidential Compute Architecture (CCA) on Arm \cite{arm-den-0126}. It is an extension to the Arm9-A architecture.
+
+RME enables the dynamic transfer of resources and memory to a new protected address space. Arm CCA exploits the new address space in order to construct protected execution environments called Realms.
+
+The security state associated is called \textbf{Realm} and it is implemented in a way so that every service/application that runs in it is isolated from the other service/application. It is useful to note that the software that run in Secure state and Realm state are mutually distrusting. The Secure state is maintained from the previous architectures for backward compatibility.
+
+\subsection{Security States}
+\label{subsec:sec_states}
+In a Processing element that supports RME, four security states are implemented:
+\begin{itemize}
+    \item Secure state (maintained from the previous architectures)
+    \item Non-secure state (where runs the Rich OS)
+    \item Root state
+    \item Realm state
+\end{itemize}
+
+\begin{figure}[hb]
+  \centering
+  \includegraphics[width=0.8\textwidth]{images/cca_security_states.png}
+  \caption{CCA Security States. Reproduced from \cite{arm-den-0125}.}
+  \label{fig:cca-security-states}
+\end{figure}
+
+
+The Root and Realms states are the new states introduced with Arm CCA. The Root state has the maximum exception level. It runs the Secure Monitor, which is the software component that is in charge of switching between the different worlds. Instead, the Realm state is in charge of running the Realms and the Realm Management Monitor, which is the software component that manages the Realms.
+
+
+To map each state two bits of the SCR\_EL3 register are encoded (NSE,NS) as seen in table \ref{tab:sec_encoding}.
+
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{0.6\textwidth}{|l X|}
+        \hline
+        \textbf{SCR\_EL3.\{NSE,NS\}} & \textbf{Security State} \\
+        \hline
+        \{0,0\} & Secure \\
+        \{0,1\} & Non-secure \\
+        \{1,0\} & -- \\
+        \{1,1\} & Realm \\
+        \hline
+    \end{tabularx}
+    \caption{Security state encoding. Reproduced from \cite{arm-den-0126}.}
+    \label{tab:sec_encoding}
+\end{table}
+
+The \textbf{Root} state has no encoding, when the Processing element is at the exception level 3, the security state is always the Root state, regardless the configuration of the SCR\_EL3 register.
+
+\subsection{Memory isolation and protection}
+\label{subsec:mem_isolation}
+
+Each security state has associated one Physical Address Space, so RME extends the support from two PA spaces to four PA spaces:
+\begin{itemize}
+    \item Secure Physical Address Space
+    \item Non-secure Physical Address Space
+    \item Root Physical Address Space
+    \item Realm Physical Address Space
+\end{itemize}
+
+A Physical Address (PA) is associated with a physical address space by qualifying it with a PAS tag.
+The Physical Address Space tag (PAS tag) is an Address Space Identifier which permits the forming of multiple physical address spaces in the system.
+
+Each access to the memory is associated to a PAS, which is checked by PAS filters that are assigned to protect memory resources. There are two types of PAS filters:
+\begin{itemize}
+    \item \textbf{Requester-side PAS filter}, implemented within PEs and System MMUs referred to as the Granule Protection Check.
+    \item \textbf{Completer-side PAS filter}, the checks are upon the memory system.
+\end{itemize}
+
+The physical address spaces that can be reached from each Security state are defined in the table \ref{tab:mem_isolation}.
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{|l X X X X|}
+        \hline
+        \textbf{PAS} &
+        \textbf{Secure state} &
+        \textbf{Non-secure state} &
+        \textbf{Root state} &
+        \textbf{Realm state} \\
+        \hline
+        Secure PAS      & Yes & No  & Yes & No  \\
+        Non-secure PAS  & Yes & Yes & Yes & Yes \\
+        Root PAS        & No  & No  & Yes & No  \\
+        Realm PAS       & No  & No  & Yes & Yes \\
+        \hline
+    \end{tabularx}
+    \caption{PAS Access Table. Reproduced from \cite{arm-den-0126}.}
+    \label{tab:mem_isolation}
+\end{table}
+
+To access an addressable physical entity (Resource), the request has attached a PAS tag that conveys its associated Access PAS. Once it is assigned, the value of an Access PAS cannot be altered, so the system must not expose any registers or debug mechanisms that allow overriding the value of an Access PAS.
+PAS filters enforce the PAS protection check, permitting only access to a Resource only if the Access PAS matches the PAS associated to that Resource (Resouce PAS). Every request is subjected to the PAS protection check.
+
+\subsubsection{Granular PAS filtering}
+\label{subsubsec:granule}
+Granular PAS filtering is the programmable and dynamic association of a Resource with a a PAS at a granularity of a page (Physical Granule).
+The mechanism of a Granular PAS filter checks the Access PAS against a Physical Granule Resource PAS as specified in a Granule Protection Table (GPT). In case of failure of the check, the access is aborted and a Granule Protection Fault (GPF) is reported.
+
+The term Granule Protection Check is referred to a requester-side Granular PAS filter. This mechanism can be omitted for Resources that are protected by completer-side PAS filter, in this case the Resources in the GPT are marked as "All Access Permitted".
+
+\subsection{Device isolation and protection}
+MMU-attached Granule Protection Checks are applicable to Normal memory and Device memory. It is useful a completer-side PAS filter to protect at register granularity.
+
+For instance, a peripheral can include a private completer-side PAS filter to control access to its memory-mapped registers in an autonomous way. It can associate a memory-mapped register with multiple physical address space configuring the PAS filter to grant access to that register from multiple PA spaces.
+
+DMA-capable system components in a RME system can have four different security states, the identical ones defined by RME. The security state of a component defines which PA spaces it can access, in accordance to the PAS Access Table (\ref{tab:mem_isolation}).
+
+\subsection{Memory Encryption Contexts}
+Memory Encryption Contexts (MEC) are the configuration of memory regions regarding their encryption. MEC is an extension of the Arm RME, enabling the encryption of each Physical Address Space in a fine-grained way. Specifically for the Realm PAS, each Realm has a unique encryption context, providing additional defense in depth to the isolation provided by RME.
+
+To identify each MEC, identifying tags (MECID) are associated with different Memory Encryption Contexts and they are assigned to different software entities in the system, such as Realms or the RMM.
+
+To map each MECID to a corresponding Memory Encryption Context, the Memory Protection Engine (MPE) is needed. MEC typically consists of an encryption key or tweak and they are initialized at system boot and stored by the MPE. They can be updated, on request from Root world, when a MECID is assigned to a different software entity.
+
+The MECID size is limited from 1 to 16 bits, so the number of possible Memory Encryption Contexts is also limited. MECIDs are reused during the lifetime of the running system. Every new assignment of a MECID must happen after the previous Memory Encryption Context, to which that MECID was associated, is invalidated and then it can be regenerated.
+
+\section{Hardware Enforced Security}
+\label{sec:HES}
+
+Arm strongly recommend that all implementations of CCA utilize the Hardware Enforced Security (HES) ([R0004] of \cite{arm-den-0096}). The HES is an underlying hardware layer that is in charge of some services that are relocated away from the Processing Element domain. Some of these services are:
+
+\begin{itemize}
+    \item CCA platform attestation
+    \item tracking of CCA boot state
+    \item CCA security lifecycle management
+    \item CCA key derivation
+\end{itemize}
+
+The security of these services is enforced with memory shielded locations. In this way the exposure of root secret is mitigated in case of physical access based attacks.
+The HES is also a key component for the secure boot and the attestation process. In fact, it acts as hardware Root-of-Trust for storage.
+
+\section{Monitor}
+\label{sec:monitor}
+
+The Monitor is the software component that runs in Exception level 3 in Root security state. The responsibilities of the Monitor include:
+\begin{itemize}
+    \item Context switching of PE execution between security states.
+    \item Dynamic assignment of the memory to different Physical Address Space, by writing to the Granule Protection Table (GPT), which is only accessible from Root security state.
+    \item Realm attestation and device assignment support.
+\end{itemize}
+
+The security state of the Monitor is a standalone state, where no applications/services could run, enabling a more defense in depth of the firmware that cannot be seen by potential malicious applications that are present in the other security states \cite{arm-den-0127}.
+
+\subsection{TF-A}
+TF-A is the reference implementation of the Monitor in Arm CCA. It manages security state switching and assigns resources between security states. During run-time, it handles Secure Monitor Calls (SMC) from the Real Management Monitor (RMM) to configure PAS, update GPT and execute TLB maintenance to Point of Physical Aliasing (PoPA).
+
+TF-A includes BL1 boot ROM image, BL2 image and BL31 Run-time firmware for Arm CCA enablement.
+
+\section{Realm Management Monitor}
+\label{sec:RMM}
+
+The Realm Management Monitor (RMM) is the controlling software in the Realm world. It handles the requests coming from the hypervisor in the Normal world to enable the management of the Realm VM execution \cite{arm-den-0126}. The communication between the two worlds happens through the Monitor in Root world.
+
+The RMM is the Realm firmware and operates in Exception level 2 in Realm world, known as R\_EL2.
+
+The RMM provides services to the Host in the Normal world, to enable the Host to manage the Realms.
+The Host owns all policy decisions, including the following:
+\begin{itemize}
+    \item When to create or destroy a Realm.
+    \item When to add or remove memory from a Realm.
+    \item When to schedule a Realm in or out.
+\end{itemize}
+The RMM to support the host Policies, provides the following functionality:
+\begin{itemize}
+    \item Manipulation of Realm page tables (memory management).
+    \item Management of Realm context.
+    \item Interrupt support.
+    \item Power management requests.
+\end{itemize}
+
+It is important to underline the services provided by the RMM to the Realms, primarily attestation and cryptographic services.
+The RMM guarantees the following security primitives for the Realms:
+\begin{itemize}
+    \item Validation of host requests for correctness.
+    \item Realm isolation from each other.
+\end{itemize}
+The RMM specifies two interfaces:
+\begin{itemize}
+    \item The Realm Management Interface (RMI) used by the Host.
+    \item The Realm Services Interface (RSI) used by the Realm.
+\end{itemize}
+
+Arm CCA defines a third interface called the Realm Host Interface (RHI), for communications between the guest and the hypervisor without exploiting the RMM.
+
+\subsection{Realm Management Interface}
+The RMI is the interface between the RMM and the Normal world Host, enabling control of Realm management which includes creation, population, execution and destruction of the Realms
+
+It is clear that the decisions are upon the Host, highlighting the main drawback of this architecture. There is no guarantee of availability, in fact if the hypervisor does not request a Realm, due to its corruption, the TEE is not used. In this way improvements could be achieved through several controls on the Realm effective usage.
+
+\subsection{Realm Service Interface}
+The Realm Service Interface (RSI) is the interface between the Realm VM and the RMM.
+Realm exploits this interface in order to request services to the RMM including:
+\begin{itemize}
+    \item Request of an Attestation report describing the CCA platform and the Realm's initial state.
+    \item Management of Realm's address space properties, including sharing memory with the Host.
+    \item Attesting and accepting devices assigned to the Realm.
+\end{itemize}
+
+\subsection{Realm Host Interface}
+The Realm Host Interface (RHI) enables the communication between the Realm and the untrusted host hypervisor in the non-secure world, requesting Realm management functions through a trsuted interface without requiring the participation of the CCA firmware (RMM and EL3 Monitor). Type of services that an host can request:
+\begin{itemize}
+    \item Early provisioning of secrets to a Realm during guest boot.
+    \item Discovery of Host-imposed constraints on the granularity that memory can be shared between Realm and Host.
+    \item Retrieval of attestation evidence related to Realm-assigned devices. The attestation token is stored by the Host and secured via hashes held by the RMM.
+\end{itemize}
+
+
+\section{Attestation in CCA}
+\label{sec:attCCA}
+
+The Arm CCA architecture provides a native support for the attestation. Specifically, attestation mechanisms is provided for two distinct elements:
+
+\begin{itemize}
+    \item \textbf{platform attestation} aims to establish trustworthiness for the underlying Arm CCA platform; in other terms, it ensures that the hardware on which the code is running is a legit Arm CCA machine that has not been tampered with
+    \item \textbf{realm attestation} aims to establish trustworthiness for a specific realm; so, it ensures that the code that runs within the realm is the one supposed to run
+\end{itemize}
+
+The final attestation token contains the two tokens (one for the platform and one for the realm). However, the two tokens are cryptographically bounded in order to avoid a replay attack based on the reuse of a single token. The following section will provide a description of the attester architecture. Then, the attestation process for both platform and realm will be described. This documents relies upon the extension of the RATS architecture provided by Arm \cite{ffm-rats-cca-token-02}. This work is still a draft. However, it is in an advanced state with some implementations already developed.
+
+\subsection{Arm CCA Attester}
+\label{subsec:cca_attester}
+As specified by the RATS architecture depicted in the RFC 9334 \cite{rfc9334}, the Attester is the element in charge of producing a signed collection of Claims that constitutes Evidence about a target environment. 
+In the academic literature there are some inaccuracies about the classification of the CCA attester. In their work about the formal specification of the CCA attestation mechanism, Muhammad Usama Sardar et al. described the CCA attester as a \textit{Composite} one \cite{cca-formal-verification} (Section 1). On the other hand, the draft of the CCA attestation token depicts a more complex scenario. Simon Frost et al. wrote that there are two types of attester in the CCA architecture: the \textbf{direct attester} and the \textbf{delegated attester}. Sadly, they provided a description only for the delegated one, which is categorized as a layered attester (which is in contrast to the composite classification) \cite{ffm-rats-cca-token-02}. Moreover, this distinction is not presented in other works, neither in the Arm documentation. In the following only the delegated-layered attester architecture will be considered due to the lack of a clear specification.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.4\textwidth]{images/cca_attester.png}
+  \caption{Arm CCA attester architecture. Reproduced from \cite{ffm-rats-cca-token-02}.}
+  \label{fig:cca-attester-arch}
+\end{figure}
+
+The CCA attester is divided into two layers:
+\begin{itemize}
+    \item the \textbf{Platform Attester} is the HES; it is the bottom layer attesting environment and during the boot phase it measures the Trusted Computing Base component; these claims are used to generate the Platform Attestation Token
+    \item the \textbf{Realm Attester} is the top layer attesting environment; at run-time, it measures the Realm elements and generates the Realm Attestation Token
+\end{itemize}
+
+\subsection{Attestation Keys}
+Both the platform and the realm attestation token are signed with an asymmetric key pair. Each type of attestation token has its own key pair:
+\begin{itemize}
+    \item the platform token is signed with the \textbf{CCA Platform Attestation Key (CPAK)}; the CPAK never leaves the HES
+    \item the realm token is signed with the \textbf{Realm Attestation Key (RAK)}; the RAK is sent to the RMM on a secure channel from the HES
+\end{itemize}
+Both keys are generated by the HES. The way in which the keys are derived depends on the specific implementation. However, Arm defined some recommendations in the CCA Security Model \cite{arm-den-0096}. Note that the fact that the RAK key pair leaves the HES is a tradeoff for the sake of efficiency: in a multi-tenant environment, requesting the HES to sign the realm token would add a computational overhead to the underlying architecture.
+However, in a tamper resistant (or tamper proof) environment the threat related to the transmission of the RAK are mitigated, since the HES and the RMM are entities of the same machine. 
+Note that this is the reason why this type of attester is labeled as delegated: the HES delegates the RMM by releasing the RAK. So, the RMM can sign the realm attestation token on behalf of the HES.
+
+\subsection{Attestation Process}
+The thorough attestation process aims to generate an attestation token that can attest the state of both the CCA platform and the realm. The mechanism is made by two steps that are performed at two different time. The \textbf{first phase happens during the boot}, when the main boot loader measures all the elements of the Trusted Computing Base. The claims are sent to the HES, which acts as hardware root-of-trust for storage. The \textbf{second phase happens at run-time} and it is a key component since it can generate claims dynamically. So, it ensures that the previously measured elements has not been tampered with after the boot. The process of generating an attestation token works as follow (Figure \ref{fig:cca-attestation-process}):
+\begin{itemize}
+    \item when the RMM is initialized, it receives the RAK from the HES
+    \item the RMM sends a request to the HES for a platform token; the request must contain also the hash of the RAK public key as challenge
+    \item the HES replies to the RMM with the platform attestation token signed with the CPAK; the token contains also the challenge sent by the RMM
+    \item the RMM now can generate the realm attestation token and can sign it with the RAK
+    \item both the platform and realm tokens are wrapped into the final attestation token, which can be sent to a verifier
+\end{itemize}
+In order to mitigate the risk of a replay attack, the tokens must take into account the freshness model depicted in the RFC9334 \cite{rfc9334}. Moreover, there must be a mechanism to demonstrate that the realm attestation token and the platform attestation token have been generated in the same process. These concerns are addressed as follow:
+\begin{itemize}
+    \item the realm attestation token contains, among the claims, a nonce sent by the requester
+    \item the platform attestation token contains the hash of the RAK public key (as stated early); the RAK public key is also included among the claims of the realm attestation token
+\end{itemize}
+
+Note that the verifier must check the token binding as first step of the verification process.
+
+\begin{figure}[hb]
+  \centering
+  \includegraphics[width=0.4\textwidth]{images/cca_attestation.png}
+  \caption{CCA Delegated Attestation. Adapted from \cite{ffm-rats-cca-token-02}.}
+  \label{fig:cca-attestation-process}
+\end{figure}
+
+\subsection{Considerations about Direct Attester}
+As stated in the Section \ref{subsec:cca_attester}, there is no explicit description of the CCA Direct attester. However, the Section 4.10 of the RFC draft \cite{ffm-rats-cca-token-02}, which is the main reference of this section, presents some insight about how this type of attester should work. This model behaves in a slightly different manner with respect to the Delegated Attester early depicted. However, there are some security considerations about that.
+
+The Direct Attester does not involve the use of two different key: the RMM is not provided with the RAK. Instead, all the computational load of the digital signing operation is demanded to the HES. In this model, the RMM prepares a Realm state claim set. Then, it is hashed and the value is used as challenge for the request of the attestation token to the HES. So, in this scenario the realm attestation token is not signed, but its integrity is checked using the hash contained in the platform attestation token. In this scenario, the HES must sign the platform token at each request from the RMM, increasing the overhead. This is the reason why the Delegated Attester represents a performance trade-off.
