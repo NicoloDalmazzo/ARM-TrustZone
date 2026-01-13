@@ -4,8 +4,8 @@
 TrustZone is the first attempt to implement a confidential computing support within the architecture of the Arm A and M CPU profiles \cite{arm-102418}.
 This support enables two security states:
 \begin{itemize}
-\item \textbf{Non-secure state}, where it runs the Rich OS such as Linux, it is called the Rich Execution Environment (REE)
-\item \textbf{Secure state}, where the Trusted Execution Environment (TEE) is executed and contains a limited software stack in order to reduce the attack surface
+\item \textbf{Non-secure state}, where it runs the Rich OS such as Linux, it is called the Rich Execution Environment (REE).
+\item \textbf{Secure state}, where the Trusted Execution Environment (TEE) is executed and contains a limited software stack in order to reduce the attack surface.
 \end{itemize}
 
 The current document will be focused only on the Arm TrustZone technology available on the A profile CPUs. Note that the implementation for the M profile CPUs present several differences.
@@ -27,6 +27,6 @@ The work of Ménétrey et al. \cite{MnTrey2022} presents, among several confiden
 
 Arm TrustZone suffers from several problems that are architecture based and so they cannot be fixed by architecture extensions:
 \begin{itemize}
-    \item A single TEE is present, where more than one application could run. So, there is no mutual distrust between Trusted applications by hardware enforcement.
+    \item a single TEE is present, where more than one application could run. So, there is no mutual distrust between Trusted applications by hardware enforcement.
     \item Secure Monitor shares the same Physical Address Space of the Secure state, so if an application that runs in it is compromised, the overall system could be attacked.
 \end{itemize}

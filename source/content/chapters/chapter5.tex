@@ -7,7 +7,7 @@ From the architectural perspective, the biggest difference between Arm CCA and A
 \begin{itemize}
     \item the VM approach permit to run a complete OS under the Trusted Applications. So, the development is simplified by the fact that standard API calls can be used. On the other hand, on TrustZone the TAs must relies on the underlying secure OS.
     So, the development of the TAs depends on the API exposed by the underlying secure OS, which often is not POSIX compliant. So, Arm CCA reduces the complexity for the development of TAs.
-    \item the VM approach has also less constraint about how much memory can be assigned to a TEE. The lack of the GPT in TrustZone does not allow to assign dynamically the memory for the TAs. For instance, OP-TEE, which is the reference open source implementation for the secure OS, can run TAs of maximum some MB.
+    \item The VM approach has also less constraint about how much memory can be assigned to a TEE. The lack of the GPT in TrustZone does not allow to assign dynamically the memory for the TAs. For instance, OP-TEE, which is the reference open source implementation for the secure OS, can run TAs of maximum some MB.
 \end{itemize}
 
 Another fundamental difference is that the introduction of the Root secure state strengthens the overall security of the architecture. In fact, in TrustZone both the TAs and the Secure Monitor run in the same security state (the Secure State). So, they shared the same physical address space in memory. Moreover, the Secure State is able to access all the memory regions of the CPU. These facts implies that a vulnerability in a TA or in the Secure OS could harm any entity of the system (both in the Secure and Non-Secure world). Instead, in Arm CCA this is not possible. In fact the Secure Monitor runs in the Root World, which has its own secure state, so it has its own physical address space.
@@ -29,7 +29,7 @@ On the other hand, Arm CCA presents one important disadvantage with respect to T
       & Complex TA development due to the lack of portable APIs \\
     \hline
     Flexible and unconstrained memory allocation for Realms
-      & TAs can be large, in the order of some MB \\
+      & TAs cannot be large (few MB) \\
     \hline
     Does not guarantee availability of the Realm, only confidentiality and integrity
       & Ensures availability of the TA along with confidentiality and integrity \\

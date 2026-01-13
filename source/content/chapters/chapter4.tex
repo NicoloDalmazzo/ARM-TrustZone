@@ -14,16 +14,16 @@ The Realm Management Engine (RME) provides the hardware primitives necessary to 
 
 RME enables the dynamic transfer of resources and memory to a new protected address space. Arm CCA exploits the new address space in order to construct protected execution environments called Realms.
 
-The security state associated is called Realmand it is implemented in a way so that every service/application that runs in it is isolated from the other service/application. It is useful to note that the software that run in Secure state and Realm state are mutually distrusting. The Secure state is maintained from the previous architectures for backward compatibility.
+The security state associated is called Realm and it is implemented in a way so that every service/application that runs in it is isolated from the other service/application. It is useful to note that the software that run in Secure state and Realm state are mutually distrusting. The Secure state is maintained from the previous architectures for backward compatibility.
 
 \subsection{Security States}
 \label{subsec:sec_states}
 In a Processing element that supports RME, four security states are implemented:
 \begin{itemize}
-    \item Secure state (maintained from the previous architectures)
-    \item Non-secure state (where runs the Rich OS)
-    \item Root state
-    \item Realm state
+    \item Secure state (maintained from the previous architectures);
+    \item Non-secure state (where runs the Rich OS);
+    \item Root state;
+    \item Realm state.
 \end{itemize}
 
 \begin{figure}[hb]
@@ -63,10 +63,10 @@ The Root state has no encoding, when the Processing element is at the exception 
 
 Each security state has associated one Physical Address Space, so RME extends the support from two PA spaces to four PA spaces:
 \begin{itemize}
-    \item Secure Physical Address Space
-    \item Non-secure Physical Address Space
-    \item Root Physical Address Space
-    \item Realm Physical Address Space
+    \item Secure Physical Address Space;
+    \item Non-secure Physical Address Space;
+    \item Root Physical Address Space;
+    \item Realm Physical Address Space.
 \end{itemize}
 
 A Physical Address (PA) is associated with a physical address space by qualifying it with a PAS tag.
@@ -132,22 +132,22 @@ The MECID size is limited from 1 to 16 bits, so the number of possible Memory En
 Arm strongly recommend that all implementations of CCA utilize the Hardware Enforced Security (HES) ([R0004] of \cite{arm-den-0096}). The HES is an underlying hardware layer that is in charge of some services that are relocated away from the Processing Element domain. Some of these services are:
 
 \begin{itemize}
-    \item CCA platform attestation
-    \item tracking of CCA boot state
-    \item CCA security lifecycle management
-    \item CCA key derivation
+    \item CCA platform attestation;
+    \item tracking of CCA boot state;
+    \item CCA security lifecycle management;
+    \item CCA key derivation.
 \end{itemize}
 
 The security of these services is enforced with memory shielded locations. In this way the exposure of root secret is mitigated in case of physical access based attacks.
-The HES is also a key component for the secure boot and the attestation process. In fact, it acts as hardware Root-of-Trust for storage.
+The HES is also a key component for the secure boot and the attestation process. In fact, it acts as hardware Root-of-Trust for storage and measurement.
 
 \section{Monitor}
 \label{sec:monitor}
 
 The Monitor is the software component that runs in Exception level 3 in Root security state. The responsibilities of the Monitor include:
 \begin{itemize}
-    \item Context switching of PE execution between security states.
-    \item Dynamic assignment of the memory to different Physical Address Space, by writing to the Granule Protection Table (GPT), which is only accessible from Root security state.
+    \item context switching of PE execution between security states.
+    \item Dynamic assignment of the memory to Different Physical Address Space, by writing to the Granule Protection Table (GPT), which is only accessible from Root security state.
     \item Realm attestation and device assignment support.
 \end{itemize}
 
@@ -168,28 +168,28 @@ The RMM is the Realm firmware and operates in Exception level 2 in Realm world, 
 The RMM provides services to the Host in the Normal world, to enable the Host to manage the Realms.
 The Host owns all policy decisions, including the following:
 \begin{itemize}
-    \item When to create or destroy a Realm.
-    \item When to add or remove memory from a Realm.
-    \item When to schedule a Realm in or out.
+    \item when to create or destroy a Realm;
+    \item when to add or remove memory from a Realm;
+    \item when to schedule a Realm in or out.
 \end{itemize}
 The RMM to support the host Policies, provides the following functionality:
 \begin{itemize}
-    \item Manipulation of Realm page tables (memory management).
-    \item Management of Realm context.
-    \item Interrupt support.
-    \item Power management requests.
+    \item manipulation of Realm page tables (memory management);
+    \item management of Realm context;
+    \item interrupt support;
+    \item power management requests.
 \end{itemize}
 
 It is important to underline the services provided by the RMM to the Realms, primarily attestation and cryptographic services.
 The RMM guarantees the following security primitives for the Realms:
 \begin{itemize}
-    \item Validation of host requests for correctness.
-    \item Realm isolation from each other.
+    \item validation of host requests for correctness;
+    \item realm isolation from each other.
 \end{itemize}
 The RMM specifies two interfaces:
 \begin{itemize}
-    \item The Realm Management Interface (RMI) used by the Host.
-    \item The Realm Services Interface (RSI) used by the Realm.
+    \item the Realm Management Interface (RMI) used by the Host;
+    \item the Realm Services Interface (RSI) used by the Realm.
 \end{itemize}
 
 Arm CCA defines a third interface called the Realm Host Interface (RHI), for communications between the guest and the hypervisor without exploiting the RMM.
@@ -203,7 +203,7 @@ It is clear that the decisions are upon the Host, highlighting the main drawback
 The Realm Service Interface (RSI) is the interface between the Realm VM and the RMM.
 Realm exploits this interface in order to request services to the RMM including:
 \begin{itemize}
-    \item Request of an Attestation report describing the CCA platform and the Realm's initial state.
+    \item request of an Attestation report describing the CCA platform and the Realm's initial state.
     \item Management of Realm's address space properties, including sharing memory with the Host.
     \item Attesting and accepting devices assigned to the Realm.
 \end{itemize}
@@ -211,7 +211,7 @@ Realm exploits this interface in order to request services to the RMM including:
 \subsection{Realm Host Interface}
 The Realm Host Interface (RHI) enables the communication between the Realm and the untrusted host hypervisor in the non-secure world, requesting Realm management functions through a trsuted interface without requiring the participation of the CCA firmware (RMM and EL3 Monitor). Type of services that an host can request:
 \begin{itemize}
-    \item Early provisioning of secrets to a Realm during guest boot.
+    \item early provisioning of secrets to a Realm during guest boot.
     \item Discovery of Host-imposed constraints on the granularity that memory can be shared between Realm and Host.
     \item Retrieval of attestation evidence related to Realm-assigned devices. The attestation token is stored by the Host and secured via hashes held by the RMM.
 \end{itemize}
@@ -223,8 +223,8 @@ The Realm Host Interface (RHI) enables the communication between the Realm and t
 The Arm CCA architecture provides a native support for the attestation. Specifically, attestation mechanisms is provided for two distinct elements:
 
 \begin{itemize}
-    \item \textbf{platform attestation} aims to establish trustworthiness for the underlying Arm CCA platform; in other terms, it ensures that the hardware on which the code is running is a legit Arm CCA machine that has not been tampered with
-    \item \textbf{realm attestation} aims to establish trustworthiness for a specific realm; so, it ensures that the code that runs within the realm is the one supposed to run
+    \item \textbf{platform attestation} aims to establish trustworthiness for the underlying Arm CCA platform; in other terms, it ensures that the hardware on which the code is running is a legit Arm CCA machine that has not been tampered with.
+    \item \textbf{Realm attestation} aims to establish trustworthiness for a specific realm; so, it ensures that the code that runs within the realm is the one supposed to run.
 \end{itemize}
 
 The final attestation token contains the two tokens (one for the platform and one for the realm). However, the two tokens are cryptographically bounded in order to avoid a replay attack based on the reuse of a single token. The following section will provide a description of the attester architecture. Then, the attestation process for both platform and realm will be described. This documents relies upon the extension of the RATS architecture provided by Arm \cite{ffm-rats-cca-token-02}. This work is still a draft. However, it is in an advanced state with some implementations already developed.
@@ -243,15 +243,15 @@ In the academic literature there are some inaccuracies about the classification 
 
 The CCA attester is divided into two layers:
 \begin{itemize}
-    \item the \textbf{Platform Attester} is the HES; it is the bottom layer attesting environment and during the boot phase it measures the Trusted Computing Base component; these claims are used to generate the Platform Attestation Token
-    \item the \textbf{Realm Attester} is the top layer attesting environment; at run-time, it measures the Realm elements and generates the Realm Attestation Token
+    \item the \textbf{Platform Attester} is the HES; it is the bottom layer attesting environment and during the boot phase it measures the Trusted Computing Base component; these claims are used to generate the Platform Attestation Token.
+    \item The \textbf{Realm Attester} is the top layer attesting environment; at run-time, it measures the Realm elements and generates the Realm Attestation Token.
 \end{itemize}
 
 \subsection{Attestation Keys}
 Both the platform and the realm attestation token are signed with an asymmetric key pair. Each type of attestation token has its own key pair:
 \begin{itemize}
-    \item the platform token is signed with the \textbf{CCA Platform Attestation Key (CPAK)}; the CPAK never leaves the HES
-    \item the realm token is signed with the \textbf{Realm Attestation Key (RAK)}; the RAK is sent to the RMM on a secure channel from the HES
+    \item the platform token is signed with the \textbf{CCA Platform Attestation Key (CPAK)}; the CPAK never leaves the HES.
+    \item The realm token is signed with the \textbf{Realm Attestation Key (RAK)}; the RAK is sent to the RMM on a secure channel from the HES.
 \end{itemize}
 Both keys are generated by the HES. The way in which the keys are derived depends on the specific implementation. However, Arm defined some recommendations in the CCA Security Model \cite{arm-den-0096}. Note that the fact that the RAK key pair leaves the HES is a tradeoff for the sake of efficiency: in a multi-tenant environment, requesting the HES to sign the realm token would add a computational overhead to the underlying architecture.
 However, in a tamper resistant (or tamper proof) environment the threat related to the transmission of the RAK are mitigated, since the HES and the RMM are entities of the same machine. 
@@ -260,16 +260,16 @@ Note that this is the reason why this type of attester is labeled as delegated: 
 \subsection{Attestation Process}
 The thorough attestation process aims to generate an attestation token that can attest the state of both the CCA platform and the realm. The mechanism is made by two steps that are performed at two different time. The \textbf{first phase happens during the boot}, when the main boot loader measures all the elements of the Trusted Computing Base. The claims are sent to the HES, which acts as hardware root-of-trust for storage. The \textbf{second phase happens at run-time} and it is a key component since it can generate claims dynamically. So, it ensures that the previously measured elements has not been tampered with after the boot. The process of generating an attestation token works as follow (Figure \ref{fig:cca-attestation-process}):
 \begin{itemize}
-    \item when the RMM is initialized, it receives the RAK from the HES
-    \item the RMM sends a request to the HES for a platform token; the request must contain also the hash of the RAK public key as challenge
-    \item the HES replies to the RMM with the platform attestation token signed with the CPAK; the token contains also the challenge sent by the RMM
-    \item the RMM now can generate the realm attestation token and can sign it with the RAK
-    \item both the platform and realm tokens are wrapped into the final attestation token, which can be sent to a verifier
+    \item when the RMM is initialized, it receives the RAK from the HES.
+    \item The RMM sends a request to the HES for a platform token; the request must contain also the hash of the RAK public key as challenge.
+    \item The HES replies to the RMM with the platform attestation token signed with the CPAK; the token contains also the challenge sent by the RMM.
+    \item The RMM now can generate the realm attestation token and can sign it with the RAK.
+    \item Both the platform and realm tokens are wrapped into the final attestation token, which can be sent to a verifier.
 \end{itemize}
 In order to mitigate the risk of a replay attack, the tokens must take into account the freshness model depicted in the RFC9334 \cite{rfc9334}. Moreover, there must be a mechanism to demonstrate that the realm attestation token and the platform attestation token have been generated in the same process. These concerns are addressed as follow:
 \begin{itemize}
-    \item the realm attestation token contains, among the claims, a nonce sent by the requester
-    \item the platform attestation token contains the hash of the RAK public key (as stated early); the RAK public key is also included among the claims of the realm attestation token
+    \item the realm attestation token contains, among the claims, a nonce sent by the requester.
+    \item The platform attestation token contains the hash of the RAK public key (as stated early); the RAK public key is also included among the claims of the realm attestation token.
 \end{itemize}
 
 Note that the verifier must check the token binding as first step of the verification process.

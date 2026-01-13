@@ -1,2 +1,8 @@
 \chapter{Conclusions}
 \label{sec:conclusions}
+
+Arm CCA represents a big innovation from the earlier TrustZone technology. The virtualization-based approach, the hardware primitives of the RME, and the introduction of the root state are the most impactful features that enable hardware enforced isolation between distrusting workloads. Nonetheless, both the solutions can coexist for different commercial use cases. In fact, TrustZone has a mature history of use cases for the smartphone and IoT markets, while CCA will be likely more suitable for multi-tenant environments and cloud providers.
+
+Nevertheless, this work highlighted some critical aspects that future works on Arm CCA should face, such as the concerns about the Realm availability and the information leakage through the attestation token.
+
+There are no hardware solutions available on the market yet with the support for Arm CCA. However, Arm is already working on the standardization of the attestation mechanism. Future works should address the study of the VM-based approach overhead in order to better define the optimal use cases of this technology. Moreover, the privacy concerns early mentioned can be another topic that can be explored in the future. 

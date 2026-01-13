@@ -8,10 +8,10 @@ In the AArch64 architecture there are present different level of privilege. The 
 \label{subsec:exc_levels}
 The AArch64 provides four exception levels and they are normally abbreviated to as EL<x>, where x indicates the number of the privilege level. The four privilege levels are presented in the following, from the least privilege to the highest:
 \begin{itemize}
-    \item \textbf{Exception Level 0 (EL0)}, where user applications run
-    \item \textbf{Exception Level 1 (EL1)}, where the operating system runs
-    \item \textbf{Exception Level 2 (EL2)}, if present the hypervisor is running here
-    \item \textbf{Exception Level 3 (EL3)}, the highest privilege level where only secure firmware can run
+    \item \textbf{Exception Level 0 (EL0)}, where user applications run;
+    \item \textbf{Exception Level 1 (EL1)}, where the operating system runs;
+    \item \textbf{Exception Level 2 (EL2)}, if present the hypervisor is running here;
+    \item \textbf{Exception Level 3 (EL3)}, the highest privilege level where only secure firmware can run.
 \end{itemize}
 
 In order to change the current privilege level, the processor has to take an exception, resulting in the same previous privilege level or an higher one, never a lower privilege level. Instead, when returning from an exception, the privilege level can stay the same, or go to a lower one. It is the inverse process when the exception was taken.
@@ -19,8 +19,8 @@ In order to change the current privilege level, the processor has to take an exc
 \subsection{Types of Privilege}
 In the AArch64 architecture there are two relevant types of privilege:
 \begin{itemize}
-    \item Privilege in the memory system
-    \item Privilege regarding access to processor resources
+    \item privilege in the memory system;
+    \item privilege regarding access to processor resources.
 \end{itemize}
 
 The A-profile of the Arm architecture allows, thanks to the MMU, defining attributes to region of memory via software. These attributes enable to define separate access permissions for privileged and unprivileged accesses.
